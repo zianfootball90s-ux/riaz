@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, orientation=landscape" />
+  <title>Football Score App</title>
+  <style>
+    :root {
+      --bg-black: #000;
+      --purple1: #6a11cb;
+      --purple2: #8e22c4;
+      --white: #fff;
+      --badge-red: #d92b2b;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;   /* ✅ no scrolling */
+      background: var(--bg-black);
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+    }
+
+    /* ---------- Container ---------- */
+    .container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* ---------- Video ---------- */
+    .video-frame {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    .video-frame video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ---------- LIVE Badge ---------- */
+    .live-badge {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--badge-red);
+      color: var(--white);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      z-index: 10;
+    }
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #fff;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity:1; }
+      50% { transform: scale(1.4); opacity:0.6; }
+      100% { transform: scale(1); opacity:1; }
+    }
+
+    /* ---------- Score Bar ---------- */
+    .score-bar {
+      position: absolute;
+      top: 10px;
+      left: 20px;
+      background: linear-gradient(to right, var(--purple1), var(--purple2));
+      color: var(--white);
+      border-radius: 10px;
+      padding: 4px 12px;   /* ✅ smaller height */
+      font-size: 14px;
+      text-align: center;
+      z-index: 9;
+    }
+    .teams { display:flex; align-items:center; gap:10px; font-weight:bold; }
+    .team-label { font-size:12px; }
+    .score {
+      display:flex; gap:6px; font-size:20px; font-weight:900;
+    }
+    .score span { cursor:pointer; user-select:none; }
+    .timer { font-size:12px; margin-top:2px; cursor:pointer; }
+
+    /* ---------- Logos ---------- */
+    .team-logo {
+      position: absolute;
+      width: 80px;  /* ✅ optimized for landscape mobile */
+      bottom: 8px;
+      object-fit: contain;
+      z-index: 10;
+    }
+    .team-left { left: 30%; transform: translateX(-50%); }
+    .team-right { right: 30%; transform: translateX(50%); }
+
+    /* ---------- Settings ---------- */
+    .settings-btn {
+      position: absolute;
+      bottom: 15px;
+      right: 15px;
+      font-size: 22px;
+      background: #fff;
+      border-radius: 50%;
+      padding: 6px 10px;
+      cursor: pointer;
+      z-index: 20;
+    }
+    .settings-panel {
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 450px;
+      background: #fff;
+      padding: 14px;
+      border-radius: 10px;
+      display: none;
+      z-index: 30;
+    }
+    .settings-panel input { width:100%; margin:6px 0 10px; }
+    .close-btn {
+      position: absolute;
+      top: 6px;
+      right: 10px;
+      cursor: pointer;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="video-frame">
+      <video id="gameVideo" autoplay loop muted playsinline>
+        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+      </video>
+      <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+    </div>
+
+    <!-- Score bar -->
+    <div class="score-bar">
+      <div class="teams">
+        <div class="team-label" id="teamALabel">TEAM A</div>
+        <div class="score">
+          <span id="scoreA">0</span>-<span id="scoreB">0</span>
+        </div>
+        <div class="team-label" id="teamBLabel">TEAM B</div>
+      </div>
+      <div class="timer" id="timer">00:00</div>
+    </div>
+
+    <!-- Logos -->
+    <img id="logoA" src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo team-left" />
+    <img id="logoB" src="https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" class="team-logo team-right" />
+
+    <!-- Settings -->
+    <div class="settings-btn" id="openSettingsBtn">⚙️</div>
+    <div class="settings-panel" id="settingsPanel">
+      <div class="close-btn" id="closeSettingsBtn">×</div>
+      <h3>Settings</h3>
+      <label>Team A Name</label><input type="text" id="inputTeamA" />
+      <label>Team B Name</label><input type="text" id="inputTeamB" />
+      <label>Team A Logo</label><input type="file" id="inputLogoA" accept="image/*" />
+      <label>Team B Logo</label><input type="file" id="inputLogoB" accept="image/*" />
+      <label>Gameplay Video</label><input type="file" id="inputVideo" accept="video/*" />
+      <button id="applyBtn">Apply</button>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Score + Timer ----------
+    let scoreA=0, scoreB=0, timer=0, clicks=0, interval=null;
+    const a=document.getElementById("scoreA"),
+          b=document.getElementById("scoreB"),
+          t=document.getElementById("timer");
+    a.onclick=()=>{scoreA++;a.textContent=scoreA;}
+    b.onclick=()=>{scoreB++;b.textContent=scoreB;}
+    t.onclick=()=>{
+      clicks++;
+      if(interval){clearInterval(interval);interval=null;}
+      if(clicks===1){
+        timer=0;
+        interval=setInterval(()=>{timer++;t.textContent=`${String(Math.floor(timer/60)).padStart(2,"0")}:${String(timer%60).padStart(2,"0")}`;},1000);
+      } else if(clicks===2){
+        t.textContent="Half Time";
+      } else if(clicks===3){
+        timer=45*60;
+        interval=setInterval(()=>{timer++;t.textContent=`${String(Math.floor(timer/60)).padStart(2,"0")}:${String(timer%60).padStart(2,"0")}`;},1000);
+      } else {
+        clicks=0;timer=0;scoreA=scoreB=0;
+        a.textContent=0;b.textContent=0;t.textContent="00:00";
+      }
+    };
+
+    // ---------- Settings ----------
+    const openBtn=document.getElementById("openSettingsBtn"),
+          closeBtn=document.getElementById("closeSettingsBtn"),
+          panel=document.getElementById("settingsPanel");
+    openBtn.onclick=()=>panel.style.display="block";
+    closeBtn.onclick=()=>panel.style.display="none";
+    document.getElementById("applyBtn").onclick=()=>{
+      document.getElementById("teamALabel").textContent=document.getElementById("inputTeamA").value||"TEAM A";
+      document.getElementById("teamBLabel").textContent=document.getElementById("inputTeamB").value||"TEAM B";
+      const logoA=document.getElementById("inputLogoA").files[0];
+      if(logoA) document.getElementById("logoA").src=URL.createObjectURL(logoA);
+      const logoB=document.getElementById("inputLogoB").files[0];
+      if(logoB) document.getElementById("logoB").src=URL.createObjectURL(logoB);
+      const vid=document.getElementById("inputVideo").files[0];
+      if(vid) document.getElementById("gameVideo").src=URL.createObjectURL(vid);
+      panel.style.display="none";
+    };
+  </script>
+</body>
+</html>
